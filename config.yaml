@@ -1,0 +1,10 @@
+server:
+  hostgRPC: ":8080"
+  hostREST: ":50051"
+  timeout: 10s
+database:
+  port: "5433"
+  user: "alex-db"
+  password: "1234"
+  dbname: "postgres"
+  host: "localhost"

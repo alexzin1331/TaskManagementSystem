@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package task_service;
+
+option go_package = "./gen/go";
+
+import "google/protobuf/timestamp.proto";
+
+enum TaskStatus {
+  TASK_STATUS_UNSPECIFIED = 0;
+  TASK_STATUS_OPEN = 1;
+  TASK_STATUS_IN_PROGRESS = 2;
+  TASK_STATUS_COMPLETED = 3;
+  TASK_STATUS_PENDING = 4;
+  TASK_STATUS_CANCELLED = 5;
+}
+
+message Task {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  google.protobuf.Timestamp due_date = 4;
+  TaskStatus status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message CreateTaskRequest {
+  string title = 1;
+  string description = 2;
+  google.protobuf.Timestamp due_date = 3;
+}
+
+message CreateTaskResponse {
+  Task task = 1;
+}
+
+message GetTaskRequest {
+  int64 id = 1;
+}
+
+message GetTaskResponse {
+  Task task = 1;
+}
+
+message UpdateTaskRequest {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  google.protobuf.Timestamp due_date = 4;
+  TaskStatus status = 5;
+}
+
+message UpdateTaskResponse {
+  Task task = 1;
+}
+
+message DeleteTaskRequest {
+  int64 id = 1;
+}
+
+message DeleteTaskResponse {
+  bool success = 1;
+}
+
+message ListTasksRequest {
+  TaskStatus status = 1;  // Filter by status
+  google.protobuf.Timestamp due_date_from = 2; // Filter by due date range
+  google.protobuf.Timestamp due_date_to = 3;
+  int32 page_size = 4;
+  int32 page_token = 5;
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+  int32 next_page_token = 2;
+}
+
+message SearchTasksRequest {
+  string query = 1; // Search query
+  int32 page_size = 2;
+  int32 page_token = 3;
+}
+
+message SearchTasksResponse {
+  repeated Task tasks = 1;
+  int32 next_page_token = 2;
+}
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+}
+
+message RegisterResponse {
+  int64 user_id = 1;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string token = 1;
+}
+
+
+service TaskService {
+  rpc CreateTask (CreateTaskRequest) returns (CreateTaskResponse) {}
+  rpc GetTask (GetTaskRequest) returns (GetTaskResponse) {}
+  rpc UpdateTask (UpdateTaskRequest) returns (UpdateTaskResponse) {}
+  rpc DeleteTask (DeleteTaskRequest) returns (DeleteTaskResponse) {}
+  rpc ListTasks (ListTasksRequest) returns (ListTasksResponse) {}
+  rpc SearchTasks (SearchTasksRequest) returns (SearchTasksResponse) {}
+}
+
+service AuthService {
+  rpc Register (RegisterRequest) returns (RegisterResponse) {}
+  rpc Login (LoginRequest) returns (LoginResponse) {}
+}
+
+
