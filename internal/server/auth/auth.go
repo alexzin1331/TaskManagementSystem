@@ -59,7 +59,6 @@ func (s *AuthServer) Login(ctx context.Context, req *taskv1.LoginRequest) (*task
 	if req.Password == "" {
 		return nil, status.Error(codes.InvalidArgument, "password is required")
 	}
-
 	token, err := s.AuthService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
@@ -74,7 +73,7 @@ func (s *AuthServer) Login(ctx context.Context, req *taskv1.LoginRequest) (*task
 }
 
 // Функция для создания JWT токена
-func createToken(userID int64) (string, error) {
+/*func createToken(userID int64) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
 		"exp":     time.Now().Add(tokenDuration).Unix(),
@@ -82,27 +81,49 @@ func createToken(userID int64) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secretKey))
-}
+}*/
 
 // Функция для проверки JWT токена
 func verifyToken(tokenString string) (int64, error) {
+
+	if tokenString == "" {
+		return 0, fmt.Errorf("empty token string")
+	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secretKey), nil
 	})
-
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("token parsing failed: %w", err)
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userID := int64(claims["user_id"].(float64))
-		return userID, nil
+	if !token.Valid {
+		return 0, fmt.Errorf("invalid token")
 	}
 
-	return 0, errors.New("invalid token")
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return 0, fmt.Errorf("invalid token claims format")
+	}
+
+	userIDClaim, exists := claims["user_id"]
+	if !exists {
+		return 0, fmt.Errorf("user_id claim is missing")
+	}
+
+	var userID int64
+	switch v := userIDClaim.(type) {
+	case float64:
+		userID = int64(v)
+	case int64:
+		userID = v
+	default:
+		return 0, fmt.Errorf("user_id must be a number, got %T", v)
+	}
+	fmt.Println("token valid")
+	return userID, nil
 }
 
 // Функция для извлечения userID из контекста

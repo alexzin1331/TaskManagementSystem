@@ -101,10 +101,10 @@ func (s *Storage) Register(ctx context.Context, username, email string, passHash
 	return userID, nil
 }
 
-func (s *Storage) GetUserByUsername(ctx context.Context, username string) (models.User, error) {
+func (s *Storage) GetUserByUsername(ctx context.Context, email string) (models.User, error) {
 	const op = "storage.postgres.GetUserByUsername"
 
-	stmt, err := s.db.PrepareContext(ctx, "SELECT id, password_hash, email FROM users WHERE username = $1")
+	stmt, err := s.db.PrepareContext(ctx, "SELECT id, password_hash, username FROM users WHERE email = $1")
 	if err != nil {
 		return models.User{}, fmt.Errorf("%s: prepare statement: %w", op, err)
 	}
@@ -112,8 +112,8 @@ func (s *Storage) GetUserByUsername(ctx context.Context, username string) (model
 
 	var userID int64
 	var passwordHash []byte
-	var email string
-	err = stmt.QueryRowContext(ctx, username).Scan(&userID, &passwordHash, &email)
+	username := ""
+	err = stmt.QueryRowContext(ctx, email).Scan(&userID, &passwordHash, &username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return models.User{}, fmt.Errorf("%s: user not found", op)
@@ -123,6 +123,7 @@ func (s *Storage) GetUserByUsername(ctx context.Context, username string) (model
 
 	return models.User{
 		ID:       userID,
+		Username: username,
 		Email:    email,
 		PassHash: passwordHash,
 	}, nil

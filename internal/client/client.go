@@ -78,7 +78,6 @@ func (c *TaskClient) Login(ctx context.Context, email, password string) (string,
 }
 
 func (c *TaskClient) CreateTask(ctx context.Context, title, description string, dueDate time.Time) (*taskv1.Task, error) {
-
 	resp, err := c.taskClient.CreateTask(c.withAuth(ctx), &taskv1.CreateTaskRequest{
 		Title:       title,
 		Description: description,

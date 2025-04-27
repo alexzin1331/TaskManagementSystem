@@ -27,7 +27,7 @@ type Auth struct {
 }
 
 type UserProvider interface {
-	GetUserByUsername(ctx context.Context, username string) (models.User, error)
+	GetUserByUsername(ctx context.Context, email string) (models.User, error)
 }
 
 type UserSaver interface {
@@ -48,21 +48,17 @@ func New(
 	}
 }
 
-func (a *Auth) Login(
-	ctx context.Context,
-	username string,
-	password string,
-) (string, error) {
+func (a *Auth) Login(ctx context.Context, email string, password string) (string, error) {
 	const op = "Auth.Login"
 
 	log := a.log.With(
 		slog.String("op", op),
-		slog.String("username", username),
+		slog.String("email", email),
 	)
 
 	log.Info("attempting to login user")
 
-	user, err := a.usrProvider.GetUserByUsername(ctx, username)
+	user, err := a.usrProvider.GetUserByUsername(ctx, email)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			log.Warn("user not found", sl.Err(err))
